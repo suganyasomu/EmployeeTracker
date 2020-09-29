@@ -1,0 +1,22 @@
+{
+  "name": "employeetracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "employeeTrackerBasic.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/suganyasomu/EmployeeTracker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/suganyasomu/EmployeeTracker/issues"
+  },
+  "homepage": "https://github.com/suganyasomu/EmployeeTracker#readme",
+  "dependencies": {
+    "mysql": "^2.18.1"
+  }
+}
