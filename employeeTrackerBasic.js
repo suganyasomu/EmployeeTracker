@@ -46,7 +46,7 @@ function start() {
       name: "option",
       type: "list",
       message: "What would you like to do?",
-      choices: ["Add Employee", "View Employee", "Update Employee", "exit"],
+      choices: ["Add Employee", "View Employee","View Employee by departments","View Employee by Managers", "Update Employee", "exit"],
     })
     .then((answer) => {
       switch (answer.option) {
@@ -57,6 +57,14 @@ function start() {
         case "View Employee":
           viewEmployee();
           break;
+
+        case "View Employee by departments":
+            viewEmployeeByDept();
+            break;
+        
+        case "View Employee by Managers":
+            viewEmployeeByManagers();
+            break;
 
         case "Update Employee":
           updateEmployee();
@@ -130,15 +138,58 @@ async function addEmployee() {
         })
        
       });
-     
-      // var getManagerId=connection.query(`select id from employee where  ?`,[answer.manager]);
-      // console.log(getRoleID);
-      // console.log(getManagerId);
-     
+
+      
     });
 }
 
+async function viewEmployeeByDept() {
+  var dept=await getDepartment();
+  console.log(dept);
+  var empDept= dept.map(department=> department.name);
+  inquirer.prompt([
+    {
+    name:"departments",
+    type:"list",
+    message:"Which department would like to view ?",
+    choices:empDept
+  }
+]).then(answer=>{ connection.query(
+    connection.query(
+      `SELECT emp.id,emp.first_name,emp.last_name, CONCAT(empMan.first_name, " ", empMan.last_name) "manager",ro.title,ro.salary,dept.name "department" FROM employee emp left join role ro 
+      on emp.role_id=ro.id
+      left join department dept
+      on ro.department_id=dept.id
+      left join employee empMan on empMan.id=emp.manager_id where dept.name = ?`,[answer.departments],
+      function (err, results) {
+        if (err) throw err;
+  
+        console.table(results);
+        console.log("Viewed the employee by department successfully");
+        start();
+      }
+    )
+   
+  );})
+ 
+}
 function viewEmployee() {
+  connection.query(
+    `SELECT emp.id,emp.first_name,emp.last_name, CONCAT(empMan.first_name, " ", empMan.last_name) "manager",ro.title,ro.salary,dept.name "department" FROM employee emp left join role ro 
+    on emp.role_id=ro.id
+    left join department dept
+    on ro.department_id=dept.id
+    left join employee empMan on empMan.id=emp.manager_id`,
+    function (err, results) {
+      if (err) throw err;
+
+      console.table(results);
+      console.log("Viewed the employee successfully");
+      start();
+    }
+  );
+}
+function viewEmployeeByManagers() {
   connection.query(
     `SELECT emp.id,emp.first_name,emp.last_name, CONCAT(empMan.first_name, " ", empMan.last_name) "manager",ro.title,ro.salary,dept.name "department" FROM employee emp left join role ro 
     on emp.id=ro.id
@@ -149,7 +200,7 @@ function viewEmployee() {
       if (err) throw err;
 
       console.table(results);
-      console.log("Viewed the employee successfully");
+      console.log("Viewed the employee by department successfully");
       start();
     }
   );
@@ -201,3 +252,18 @@ function getManager(){
   })
 });
 }
+
+function getDepartment(){
+  return new Promise((resolve,reject)=>{
+  connection.query(`select distinct(name) from department`,function(err,results){
+    if (err) reject (err);
+    resolve(results);
+  })
+  });
+}
+
+// To view the employees by department
+// select emp.id,emp.first_name,emp.last_name,dept.name "department" from department dept join employee emp on dept.id=emp.id order by dept.name;
+
+//To view the employees by manager
+// select emp.id,emp.first_name,emp.last_name,emp.manager_id from  employee emp  join employee man on emp.id=man.id;
