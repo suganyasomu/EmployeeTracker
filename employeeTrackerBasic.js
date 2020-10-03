@@ -216,33 +216,43 @@ var managerName=name.map(manName=> manName.ManagerName);
  
 }
 
-function updateEmployee() {
+async function updateEmployee() {
+var emp=await getEmployee();
+var empList= emp.map(name=>name.Fullname);
+var managerId=emp.map(id=>id.manager_id);
   inquirer
     .prompt([
       {
-        name: "update",
-        type: "input",
+        name: "updateMangerName",
+        type: "list",
         message: "Which employee's manager would you like to update?",
+        choices:empList
       },
       {
-        name: "empmanager",
+        name: "updateEmployeeRoles",
         type: "list",
         message:
           "Which employee do you want to set as manager for the selected employee?",
-        choices: ["david", "Jong", "Rani", "Jacob"],
+        choices: empList,
       },
     ])
-    .then((anwser) => {
-      connection.query("update employee SET ? WHERE ? ", [
+    .then((answer) => {
+      connection.query(`select id from employee where concat(first_name," ",last_name) = ?`,[answer.updateEmployeeRoles],function(err,res){
+if(err) throw err;
+      connection.query(`update employee SET ? WHERE concat(first_name," ",last_name) = ? `, [
         {
-          role_id: answer.role,
-        },
-        {
-          manager_id: answer.manager,
-        },
-      ]);
+          manager_id: res[0].id,
+        },answer.updateMangerName],function(err,results){
+          if (err) throw err;
+        }
+      );
       start();
-    });
+    })
+      
+    }
+  
+    );
+    
 }
 
 function getRoles() {
@@ -270,6 +280,15 @@ function getDepartment(){
     resolve(results);
   })
   });
+}
+
+function getEmployee(){
+  return new Promise((resolve,reject)=>{
+    connection.query(`select concat(first_name," ",last_name) as "Fullname" ,manager_id from employee`,function(err,results){
+      if (err) reject (err);
+      resolve(results);
+    })
+    });
 }
 
 // To view the employees by department
