@@ -154,7 +154,7 @@ async function viewEmployeeByDept() {
     message:"Which department would like to view ?",
     choices:empDept
   }
-]).then(answer=>{ connection.query(
+]).then(answer=>{ 
     connection.query(
       `SELECT emp.id,emp.first_name,emp.last_name, CONCAT(empMan.first_name, " ", empMan.last_name) "manager",ro.title,ro.salary,dept.name "department" FROM employee emp left join role ro 
       on emp.role_id=ro.id
@@ -163,14 +163,13 @@ async function viewEmployeeByDept() {
       left join employee empMan on empMan.id=emp.manager_id where dept.name = ?`,[answer.departments],
       function (err, results) {
         if (err) throw err;
-  
         console.table(results);
         console.log("Viewed the employee by department successfully");
         start();
       }
     )
    
-  );})
+  ;})
  
 }
 function viewEmployee() {
@@ -189,21 +188,32 @@ function viewEmployee() {
     }
   );
 }
-function viewEmployeeByManagers() {
-  connection.query(
-    `SELECT emp.id,emp.first_name,emp.last_name, CONCAT(empMan.first_name, " ", empMan.last_name) "manager",ro.title,ro.salary,dept.name "department" FROM employee emp left join role ro 
-    on emp.id=ro.id
-    left join department dept
-    on emp.id=dept.id
-    left join employee empMan on empMan.id=emp.manager_id`,
-    function (err, results) {
-      if (err) throw err;
-
-      console.table(results);
-      console.log("Viewed the employee by department successfully");
-      start();
-    }
-  );
+async function viewEmployeeByManagers() {
+var name=await getManager();
+console.log(name);
+var managerName=name.map(manName=> manName.ManagerName);
+  inquirer.prompt([{
+    name:"Managers",
+    type:"list",
+    message:"View employee details by manager?",
+    choices:managerName
+  }]).then(answer=>{
+    connection.query(
+      `SELECT emp.id,emp.first_name,emp.last_name, ro.title,ro.salary,dept.name "department",CONCAT(empMan.first_name, " ", empMan.last_name) "manager" FROM employee emp left join role ro 
+      on emp.role_id=ro.id
+      left join department dept
+      on ro.department_id=dept.id
+      left join employee empMan on empMan.id=emp.manager_id where CONCAT(empMan.first_name," ",empMan.last_name)=?`,[answer.Managers],
+      function (err, results) {
+        if (err) throw err;
+  
+        console.table(results);
+        console.log("Viewed the employee by Managers successfully");
+        start();
+      }
+    );
+  })
+ 
 }
 
 function updateEmployee() {
