@@ -174,8 +174,8 @@ async function addEmployee() {
                 },
                 function (err) {
                   if (err) throw err;
+                  viewEmployee();
                   console.log("Added the employee successfully!");
-                  start();
                 }
               );
             }
@@ -185,7 +185,8 @@ async function addEmployee() {
     });
 }
 
-function addDepartment(){
+async function addDepartment(){
+ 
   inquirer.prompt([{
     name:"insDept",
   type:"input",
@@ -202,7 +203,9 @@ function addDepartment(){
 
 async function addRoles(){
   var dept = await getDepartment();
+  console.table(dept);
   var empDept = dept.map((department) => department.name);
+  var roles=await getRoles();
   inquirer.prompt([{
   
   name:"insRoles",
@@ -253,6 +256,7 @@ async function removeEmployee() {
         [answer.remove],
         function (err, results) {
           if (err) throw err;
+          console.table(emp);
           console.log("Employee removed successfully");
           start();
         }
@@ -277,7 +281,7 @@ async function removeDepartment() {
         [answer.removeDept],
         function (err, results) {
           if (err) throw err;
-          console.log("Employee removed successfully");
+          console.log("department removed successfully");
           start();
         }
       );
@@ -411,7 +415,6 @@ async function viewEmployeeByManagers() {
         [answer.Managers],
         function (err, results) {
           if (err) throw err;
-
           console.table(results);
           console.log("Viewed the employee by Managers successfully");
           start();
@@ -454,12 +457,13 @@ async function updateEmployeeManager() {
               },
               answer.updateEmployee,
             ],
-            function (err, results) {
+            function (err) {
               if (err) throw err;
+              viewEmployee()
               console.log("Updated the employee's manager sucessfully");
             }
           );
-          start();
+         
         }
       );
     });
@@ -501,12 +505,14 @@ async function updateEmployeeRoles() {
               },
               answer.selectEmployee,
             ],
-            function (err, results) {
+            function (err) {
+             
               if (err) throw err;
+              viewEmployee();
               console.log("Updated the employee's role sucessfully");
             }
           );
-          start();
+         
         }
       );
     });
@@ -590,8 +596,3 @@ function getEmployee() {
   });
 }
 
-// To view the employees by department
-// select emp.id,emp.first_name,emp.last_name,dept.name "department" from department dept join employee emp on dept.id=emp.id order by dept.name;
-
-//To view the employees by manager
-// select emp.id,emp.first_name,emp.last_name,emp.manager_id from  employee emp  join employee man on emp.id=man.id;
