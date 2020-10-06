@@ -48,6 +48,8 @@ function start() {
       message: "What would you like to do?",
       choices: [
         "Add Employee",
+        "Add Department",
+        "Add Roles",
         "View Employee",
         "View Employee by departments",
         "View Employee by Managers",
@@ -65,6 +67,14 @@ function start() {
       switch (answer.option) {
         case "Add Employee":
           addEmployee();
+          break;
+
+        case "Add Department":
+          addDepartment();
+          break;
+        
+        case "Add Roles":
+          addRoles();
           break;
 
         case "View Employee":
@@ -174,6 +184,57 @@ async function addEmployee() {
       );
     });
 }
+
+function addDepartment(){
+  inquirer.prompt([{
+    name:"insDept",
+  type:"input",
+  message:"Which dept would you like to add?"
+  }]).then(answer=>{
+    connection.query(`INSERT INTO department SET ?`,{name:answer.insDept},function(err,results){
+      if (err) throw err;
+      console.log("Added the department successfully!");
+      start();
+    })
+  })
+ 
+}
+
+async function addRoles(){
+  var dept = await getDepartment();
+  var empDept = dept.map((department) => department.name);
+  inquirer.prompt([{
+  
+  name:"insRoles",
+  type:"list",
+  message:"For which dept would you like to add roles?",
+  choices:empDept
+  },
+{
+  name:"addRoleTitle",
+  type:"input",
+  message:"What is the role title you want to add for the selected department?"
+  
+},
+{
+  name:"addSalary",
+  type:"input",
+  message:"What salary do you want to add for the selected Title?"
+  
+}
+]).then(answer=>{
+    connection.query(`select id from department where name =?`,[answer.insRoles],function(err,res){
+      if(err) throw err;
+      connection.query(`INSERT INTO role SET ?`,{title:answer.addRoleTitle,salary:answer.addSalary,department_id:res[0].id},function(err,results){
+        if (err) throw err; 
+        console.log("Added the Roles successfully !");
+        start();
+      })
+    })
+   
+  })
+ 
+}
 async function removeEmployee() {
   var emp = await getEmployee();
   var empList = emp.map((name) => name.Fullname);
@@ -200,7 +261,6 @@ async function removeEmployee() {
 }
 async function removeDepartment() {
   var dept = await getDepartment();
-  console.log(dept);
   var empDept = dept.map((department) => department.name);
   inquirer
     .prompt([
